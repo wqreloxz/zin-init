@@ -1,0 +1,19 @@
+# Docker container runtime configuration
+name = "docker"
+description = "Docker - платформа для контейнеризации приложений"
+exec = "/usr/bin/dockerd"
+args = ["--config-file", "/etc/docker/daemon.json"]
+priority = 35
+category = "container"
+enabled = true
+depends_on = ["network", "filesystem"]
+restart_policy = "Always"
+timeout_secs = 60
+service_type = "Simple"
+
+[limits]
+nofile = 1048576
+nproc = 65536
+
+[environment]
+DOCKER_OPTS = "--iptables=false"

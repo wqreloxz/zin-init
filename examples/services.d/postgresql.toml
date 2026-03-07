@@ -1,0 +1,24 @@
+# PostgreSQL database configuration
+name = "postgresql"
+description = "PostgreSQL - продвинутая реляционная СУБД"
+exec = "/usr/lib/postgresql/15/bin/postgres"
+args = ["-D", "/var/lib/postgresql/15/main"]
+priority = 40
+category = "database"
+enabled = true
+depends_on = ["network", "filesystem"]
+restart_policy = "OnFailure"
+timeout_secs = 60
+service_type = "Simple"
+
+user = "postgres"
+group = "postgres"
+
+[limits]
+memory_max = 2147483648
+nofile = 65536
+nproc = 4096
+
+[environment]
+PGDATA = "/var/lib/postgresql/15/main"
+PGPORT = "5432"

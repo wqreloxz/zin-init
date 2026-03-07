@@ -1,0 +1,17 @@
+# Network service configuration
+name = "network"
+description = "Сетевые интерфейсы и подключение к сети"
+exec = "/usr/bin/NetworkManager"
+args = ["--no-daemon"]
+priority = 1
+category = "network"
+enabled = true
+restart_policy = "Always"
+timeout_secs = 30
+service_type = "Simple"
+
+[limits]
+nofile = 65536
+
+[environment]
+NM_DEBUG = "false"

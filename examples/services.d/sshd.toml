@@ -1,0 +1,22 @@
+# SSH server configuration
+name = "sshd"
+description = "OpenSSH сервер для удалённого доступа"
+exec = "/usr/sbin/sshd"
+args = ["-D", "-e"]
+priority = 10
+category = "network"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+timeout_secs = 15
+service_type = "Simple"
+
+user = "root"
+group = "root"
+
+[limits]
+nofile = 65536
+nproc = 4096
+
+[environment]
+SSH_OPTS = "-o UseDNS=no"

@@ -1,0 +1,349 @@
+# Примеры конфигураций ZIN
+
+## Сетевые сервисы
+
+### Network Manager
+```toml
+name = "network"
+description = "Сетевые интерфейсы"
+exec = "/usr/bin/NetworkManager"
+args = ["--no-daemon"]
+priority = 1
+category = "network"
+enabled = true
+restart_policy = "Always"
+
+[limits]
+nofile = 65536
+```
+
+### SSH Server
+```toml
+name = "sshd"
+description = "SSH сервер"
+exec = "/usr/sbin/sshd"
+args = ["-D"]
+priority = 10
+category = "network"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+timeout_secs = 15
+
+user = "root"
+group = "root"
+```
+
+### DHCP Client
+```toml
+name = "dhcpcd"
+description = "DHCP клиент"
+exec = "/usr/sbin/dhcpcd"
+args = ["-q", "-b"]
+priority = 2
+category = "network"
+enabled = true
+restart_policy = "Always"
+```
+
+## Веб-сервисы
+
+### Nginx
+```toml
+name = "nginx"
+description = "Веб-сервер Nginx"
+exec = "/usr/sbin/nginx"
+args = ["-g", "daemon off;"]
+working_dir = "/var/www"
+priority = 50
+category = "webserver"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+timeout_secs = 30
+
+user = "www-data"
+group = "www-data"
+
+[environment]
+NGINX_HOST = "localhost"
+NGINX_PORT = "80"
+
+[limits]
+memory_max = 536870912
+nofile = 65536
+```
+
+### Apache
+```toml
+name = "apache2"
+description = "Веб-сервер Apache"
+exec = "/usr/sbin/apache2"
+args = ["-D", "FOREGROUND"]
+priority = 50
+category = "webserver"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+
+user = "www-data"
+group = "www-data"
+```
+
+## Базы данных
+
+### PostgreSQL
+```toml
+name = "postgresql"
+description = "PostgreSQL база данных"
+exec = "/usr/lib/postgresql/15/bin/postgres"
+args = ["-D", "/var/lib/postgresql/15/main"]
+priority = 40
+category = "database"
+enabled = true
+depends_on = ["network", "filesystem"]
+restart_policy = "OnFailure"
+timeout_secs = 60
+
+user = "postgres"
+group = "postgres"
+
+[limits]
+memory_max = 2147483648
+nofile = 65536
+nproc = 4096
+```
+
+### MySQL/MariaDB
+```toml
+name = "mysql"
+description = "MySQL/MariaDB база данных"
+exec = "/usr/sbin/mysqld"
+priority = 40
+category = "database"
+enabled = true
+depends_on = ["filesystem"]
+restart_policy = "OnFailure"
+timeout_secs = 120
+
+user = "mysql"
+group = "mysql"
+
+[limits]
+memory_max = 4294967296
+nofile = 65536
+```
+
+### Redis
+```toml
+name = "redis"
+description = "Redis in-memory хранилище"
+exec = "/usr/bin/redis-server"
+args = ["/etc/redis/redis.conf"]
+priority = 45
+category = "database"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+
+user = "redis"
+group = "redis"
+```
+
+## Графическая среда (Workstation)
+
+### Display Manager (GDM)
+```toml
+name = "gdm"
+description = "GNOME Display Manager"
+exec = "/usr/sbin/gdm3"
+priority = 5
+category = "display-manager"
+enabled = true
+depends_on = ["network", "dbus"]
+restart_policy = "OnFailure"
+service_type = "Forking"
+```
+
+### Display Manager (SDDM)
+```toml
+name = "sddm"
+description = "Simple Desktop Display Manager"
+exec = "/usr/bin/sddm"
+priority = 5
+category = "display-manager"
+enabled = true
+depends_on = ["network", "dbus"]
+restart_policy = "OnFailure"
+```
+
+### Audio Server (PulseAudio)
+```toml
+name = "pulseaudio"
+description = "Звуковой сервер PulseAudio"
+exec = "/usr/bin/pulseaudio"
+args = ["--daemon=no"]
+priority = 20
+category = "audio"
+enabled = true
+restart_policy = "OnFailure"
+
+user = "audio"
+```
+
+### Bluetooth
+```toml
+name = "bluetooth"
+description = "Bluetooth сервис"
+exec = "/usr/lib/bluetooth/bluetoothd"
+priority = 25
+category = "bluetooth"
+enabled = true
+depends_on = ["dbus"]
+restart_policy = "OnFailure"
+```
+
+## Системные сервисы
+
+### D-Bus
+```toml
+name = "dbus"
+description = "D-Bus система сообщений"
+exec = "/usr/bin/dbus-daemon"
+args = ["--system", "--address=systemd:", "--nofork", "--nopidfile"]
+priority = 3
+category = "essential"
+enabled = true
+restart_policy = "Always"
+service_type = "Forking"
+```
+
+### Cron
+```toml
+name = "cron"
+description = "Планировщик задач"
+exec = "/usr/sbin/cron"
+args = ["-f"]
+priority = 30
+category = "essential"
+enabled = true
+restart_policy = "OnFailure"
+```
+
+### Logging (rsyslog)
+```toml
+name = "rsyslog"
+description = "Система логирования"
+exec = "/usr/sbin/rsyslogd"
+args = ["-n"]
+priority = 4
+category = "essential"
+enabled = true
+restart_policy = "Always"
+```
+
+### Docker
+```toml
+name = "docker"
+description = "Docker контейнеризация"
+exec = "/usr/bin/dockerd"
+args = ["--config-file", "/etc/docker/daemon.json"]
+priority = 35
+category = "container"
+enabled = true
+depends_on = ["network", "filesystem"]
+restart_policy = "Always"
+timeout_secs = 60
+
+[limits]
+nofile = 1048576
+nproc = 65536
+```
+
+## Мониторинг
+
+### Prometheus Node Exporter
+```toml
+name = "node_exporter"
+description = "Prometheus Node Exporter"
+exec = "/usr/bin/node_exporter"
+priority = 60
+category = "monitoring"
+enabled = true
+depends_on = ["network"]
+restart_policy = "OnFailure"
+
+user = "prometheus"
+group = "prometheus"
+```
+
+## Профили для разных типов систем
+
+### Workstation профиль
+```toml
+# /etc/zin/profile.toml
+system_type = "Workstation"
+
+[optimized_services]
+priority = [
+    "dbus",
+    "gdm",
+    "network",
+    "audio",
+    "bluetooth",
+]
+
+[disabled_services]
+list = [
+    "mysql",
+    "postgresql",
+    "nginx",
+    "docker",
+]
+```
+
+### Server профиль
+```toml
+# /etc/zin/profile.toml
+system_type = "Server"
+
+[optimized_services]
+priority = [
+    "network",
+    "sshd",
+    "filesystem",
+    "docker",
+    "nginx",
+]
+
+[disabled_services]
+list = [
+    "gdm",
+    "sddm",
+    "audio",
+    "bluetooth",
+    "cups",
+]
+```
+
+### Embedded профиль
+```toml
+# /etc/zin/profile.toml
+system_type = "Embedded"
+
+[optimized_services]
+priority = [
+    "network",
+    "sshd",
+]
+
+[disabled_services]
+list = [
+    "gdm",
+    "audio",
+    "bluetooth",
+    "cups",
+    "printing",
+    "docker",
+]
+```
